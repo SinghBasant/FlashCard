@@ -10,6 +10,14 @@
         window.GoogleGenerativeAI = GoogleGenerativeAI;
     </script>
     <script src="config.js"></script>
+    <script>
+        // Fallback to environment variable if config is not available
+        if (typeof config === 'undefined' || !config.GEMINI_API_KEY) {
+            const config = {
+                GEMINI_API_KEY: process.env.GEMINI_API_KEY || ''
+            };
+        }
+    </script>
     <style>
         /* Perspective container for 3D effect */
         .perspective-1000 {
@@ -527,16 +535,6 @@ Return ONLY a JSON array with this exact format (no additional text or formattin
 
         // Move the init call to after all functions are defined
         document.addEventListener('DOMContentLoaded', init);
-
-        // Add this script right after your config.js import
-        <script>
-            // Fallback to environment variable if config is not available
-            if (typeof config === 'undefined' || !config.GEMINI_API_KEY) {
-                const config = {
-                    GEMINI_API_KEY: process.env.GEMINI_API_KEY || ''
-                };
-            }
-        </script>
     </script>
 </body>
 </html> 
