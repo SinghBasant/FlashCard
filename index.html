@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS Certification Flash Cards</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold text-center mb-8">AWS Certification Flash Cards</h1>
+        
+        <!-- Selection Controls -->
+        <div class="space-y-4 mb-8">
+            <div>
+                <label class="block text-sm font-medium mb-2">Certification</label>
+                <select id="certificationSelect" class="w-full p-2 border rounded">
+                    <option value="">Select Certification</option>
+                </select>
+            </div>
+            
+            <div id="domainContainer" class="hidden">
+                <label class="block text-sm font-medium mb-2">Domains</label>
+                <div id="domainButtons" class="flex flex-wrap gap-2">
+                    <!-- Domains will be populated here -->
+                </div>
+            </div>
+
+            <div id="sessionSetup" class="hidden">
+                <label class="block text-sm font-medium mb-2">Cards per session</label>
+                <input type="number" id="cardCount" min="1" max="15" value="5" class="w-32 p-2 border rounded">
+                <button id="startSession" class="ml-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    Start Session
+                </button>
+                <label class="ml-4">
+                    <input type="checkbox" id="shuffleToggle"> Shuffle Cards
+                </label>
+            </div>
+        </div>
+
+        <!-- Flashcard Section -->
+        <div id="flashcardSection" class="hidden">
+            <div id="flashcard" class="cursor-pointer w-full h-64 perspective-1000">
+                <div class="relative w-full h-full duration-500 preserve-3d">
+                    <div class="front absolute w-full h-full backface-hidden bg-white p-6 rounded-lg shadow-lg flex items-center justify-center text-center">
+                        <p id="questionText" class="text-xl"></p>
+                    </div>
+                    <div class="back absolute w-full h-full backface-hidden bg-green-50 p-6 rounded-lg shadow-lg flex items-center justify-center text-center rotate-y-180">
+                        <p id="answerText" class="text-xl"></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-between items-center">
+                <button id="prevCard" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Previous</button>
+                <span id="progress" class="text-lg font-medium">Card 1/5</span>
+                <button id="nextCard" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Next</button>
+            </div>
+        </div>
+    </div>
+    <script src="flashcards.js"></script>
+    <script src="app.js"></script>
+</body>
+</html> 
