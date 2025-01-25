@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # AWS Certification Flash Cards
 
 An interactive flashcard application for AWS certification preparation, powered by Google's Gemini AI.
@@ -16,3 +17,6 @@ The `config.js` file containing your API key is excluded from Git tracking. Neve
 For GitHub Pages deployment:
 1. Set up your API key as a GitHub Secret
 2. Use GitHub Actions to inject the API key during deployment 
+=======
+This is a flash card app developed by Basant.
+>>>>>>> 8611d18135619b84e3d62e5bd7a0ec132ea8c769
