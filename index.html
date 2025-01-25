@@ -5,11 +5,86 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AWS Certification Flash Cards</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="styles.css">
+    <script type="module">
+        import { GoogleGenerativeAI } from 'https://esm.run/@google/generative-ai';
+        window.GoogleGenerativeAI = GoogleGenerativeAI;
+    </script>
+    <script src="config.js"></script>
+    <style>
+        /* Perspective container for 3D effect */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+
+        /* Preserve 3D space for child elements */
+        .preserve-3d {
+            transform-style: preserve-3d;
+        }
+
+        /* Hide back face of elements */
+        .backface-hidden {
+            backface-hidden: visibility;
+            -webkit-backface-visibility: hidden;
+        }
+
+        /* Rotation classes */
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+
+        /* Flip animation class */
+        .flashcard-flip {
+            transform: rotateY(180deg);
+        }
+
+        /* Smooth transition for flip */
+        .duration-500 {
+            transition-duration: 500ms;
+        }
+
+        /* Progress bar styles */
+        .progress-bar {
+            height: 4px;
+            background-color: #e5e7eb;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background-color: #3b82f6;
+            transition: width 0.3s ease;
+        }
+
+        /* Loading animation styles */
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: .5;
+            }
+        }
+
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .animate-spin {
+            animation: spin 1s linear infinite;
+        }
+    </style>
 </head>
 <body class="bg-gray-100 min-h-screen p-8">
     <div class="max-w-4xl mx-auto">
-        <h1 class="text-3xl font-bold text-center mb-8">AWS Certification Flash Cards</h1>
+        <h1 class="text-3xl font-bold text-center mb-2">AWS Certification Flash Cards</h1>
+        <p class="text-sm text-gray-600 text-center mb-8">Powered by Whizlabs CoI 🧠 Centre of Intelligence</p>
         
         <!-- Selection Controls -->
         <div class="space-y-4 mb-8">
@@ -22,9 +97,9 @@
             
             <div id="domainContainer" class="hidden">
                 <label class="block text-sm font-medium mb-2">Domains</label>
-                <div id="domainButtons" class="flex flex-wrap gap-2">
-                    <!-- Domains will be populated here -->
-                </div>
+                <select id="domainSelect" class="w-full p-2 border rounded">
+                    <option value="">Select Domain</option>
+                </select>
             </div>
 
             <div id="sessionSetup" class="hidden">
@@ -33,9 +108,14 @@
                 <button id="startSession" class="ml-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
                     Start Session
                 </button>
-                <label class="ml-4">
-                    <input type="checkbox" id="shuffleToggle"> Shuffle Cards
-                </label>
+            </div>
+        </div>
+
+        <!-- First, add this HTML right after the Selection Controls div and before the Flashcard Section -->
+        <div id="loadingSection" class="hidden">
+            <div class="flex flex-col items-center justify-center space-y-4 my-8">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                <p id="loadingMessage" class="text-lg text-gray-700 text-center animate-pulse"></p>
             </div>
         </div>
 
@@ -43,8 +123,9 @@
         <div id="flashcardSection" class="hidden">
             <div id="flashcard" class="cursor-pointer w-full h-64 perspective-1000">
                 <div class="relative w-full h-full duration-500 preserve-3d">
-                    <div class="front absolute w-full h-full backface-hidden bg-white p-6 rounded-lg shadow-lg flex items-center justify-center text-center">
+                    <div class="front absolute w-full h-full backface-hidden bg-gradient-to-br from-yellow-50 to-yellow-100 p-6 rounded-lg shadow-lg flex flex-col items-center justify-center text-center group">
                         <p id="questionText" class="text-xl"></p>
+                        <span class="hidden group-hover:block text-sm text-gray-500 mt-4">Click to Flip</span>
                     </div>
                     <div class="back absolute w-full h-full backface-hidden bg-green-50 p-6 rounded-lg shadow-lg flex items-center justify-center text-center rotate-y-180">
                         <p id="answerText" class="text-xl"></p>
@@ -53,13 +134,399 @@
             </div>
 
             <div class="mt-6 flex justify-between items-center">
-                <button id="prevCard" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Previous</button>
+                <button id="prevCard" class="flex items-center bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                    </svg>
+                    Previous
+                </button>
                 <span id="progress" class="text-lg font-medium">Card 1/5</span>
-                <button id="nextCard" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Next</button>
+                <button id="nextCard" class="flex items-center bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    Next
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                    </svg>
+                </button>
             </div>
         </div>
+
+        <!-- Add this right after the flashcard navigation buttons -->
+        <div class="mt-4">
+            <div class="flex justify-between text-sm mb-1">
+                <span>Progress</span>
+                <span id="progressText">0%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-bar-fill" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="text-center mt-8 text-gray-600 text-sm">
+            🛠️ Crafted by Basant, Jan 2025
+        </footer>
     </div>
-    <script src="flashcards.js"></script>
-    <script src="app.js"></script>
+
+    <script>
+        let geminiModel;
+        let currentCards = [];
+        let currentCardIndex = 0;
+        let isFlipped = false;
+
+        // Update the loadingMessages array with more engaging messages
+        const loadingMessages = [
+            "🔍 Whizlabs Engineers are searching for the best questions...",
+            "🧘 Relax, take a deep breath while we prepare...",
+            "⚡ Powering up our AI engines...",
+            "🎯 Crafting personalized flashcards just for you...",
+            "🚀 Almost ready to launch your learning session...",
+            "🧠 Training your brain for AWS mastery..."
+        ];
+
+        // Initialize Gemini
+        async function initGemini() {
+            try {
+                // Wait for Gemini script to load
+                await window.geminiLoaded;
+                
+                // Now we can safely use GoogleGenerativeAI
+                const genAI = new GoogleGenerativeAI(config.GEMINI_API_KEY);
+                geminiModel = genAI.getGenerativeModel({ model: "gemini-pro" });
+                console.log("Gemini initialized successfully");
+            } catch (error) {
+                console.error("Error initializing Gemini:", error);
+                throw error;
+            }
+        }
+
+        // Progress bar function
+        function updateProgress() {
+            const progress = ((currentCardIndex + 1) / currentCards.length) * 100;
+            document.querySelector('.progress-bar-fill').style.width = `${progress}%`;
+            document.getElementById('progressText').textContent = `${Math.round(progress)}%`;
+        }
+
+        // Initialize the application
+        async function init() {
+            try {
+                if (document.readyState !== 'complete') {
+                    await new Promise(resolve => {
+                        window.addEventListener('load', resolve);
+                    });
+                }
+                
+                await initGemini();
+                populateCertificationSelect();
+                setupEventListeners();
+            } catch (error) {
+                console.error("Initialization error:", error);
+            }
+        }
+
+        // Keep the certification structure without sample content
+        const flashcardsData = {
+            "AWS Certified AI Practitioner": {
+                "Domains": {
+                    "Fundamentals of AI and ML": {},
+                    "Fundamentals of Generative AI": {},
+                    "Applications of Foundation Models": {},
+                    "Guidelines for Responsible AI": {},
+                    "Security, Compliance, and Governance for AI Solutions": {}
+                }
+            },
+            "AWS Certified Cloud Practitioner": {
+                "Domains": {
+                    "Cloud Concepts and Technology": {},
+                    "Security and Compliance": {},
+                    "Cloud Technology and Services": {},
+                    "Billing, Pricing and Support": {}
+                }
+            },
+            "AWS Certified Solutions Architect Associate": {
+                "Domains": {
+                    "Design Secure Applications and Architectures": {},
+                    "Design Resilient Architectures": {},
+                    "Design High-Performing Architectures": {},
+                    "Design Cost-Optimized Architectures": {}
+                }
+            },
+            "AWS Certified Developer Associate": {
+                "Domains": {
+                    "Development with AWS Services": {},
+                    "Security": {},
+                    "Deployment": {},
+                    "Troubleshooting and Optimization": {},
+                    "Monitoring and Logging": {}
+                }
+            }
+        };
+
+        // Update the startSession function to properly handle sections visibility
+        async function startSession() {
+            const certification = document.getElementById('certificationSelect').value;
+            const domain = document.getElementById('domainSelect').value;
+            const cardCount = parseInt(document.getElementById('cardCount').value);
+
+            try {
+                // Hide flashcard section if it was visible from a previous session
+                document.getElementById('flashcardSection').classList.add('hidden');
+                
+                // Show loading animation before starting
+                await showLoadingAnimation();
+                
+                const prompt = `Generate ${cardCount} flashcards for AWS ${certification} certification, domain: ${domain}.
+Return ONLY a JSON array with this exact format (no additional text or formatting):
+[
+  {
+    "question": "Question text here",
+    "answer": "Answer text here"
+  }
+]`;
+
+                console.log("Sending prompt to Gemini:", prompt);
+                const result = await geminiModel.generateContent(prompt);
+                const response = await result.response.text();
+                console.log("Raw Gemini response:", response);
+
+                // Clean the response
+                let cleanedResponse = response
+                    .trim()
+                    // Remove any markdown code block markers
+                    .replace(/```json\s*|\s*```/g, '')
+                    // Remove any backticks
+                    .replace(/`/g, '')
+                    // Ensure proper JSON formatting
+                    .replace(/(\r\n|\n|\r)/gm, '')
+                    // Fix potential quote issues
+                    .replace(/[""]/g, '"')
+                    // Remove any leading/trailing non-JSON text
+                    .replace(/^[^[]*(\[.*\])[^]*$/, '$1');
+
+                console.log("Cleaned response:", cleanedResponse);
+
+                try {
+                    currentCards = JSON.parse(cleanedResponse);
+                } catch (parseError) {
+                    console.error("First parse attempt failed:", parseError);
+                    
+                    // Try one more time with stricter cleaning
+                    cleanedResponse = cleanedResponse
+                        .replace(/[^\[\]\{\}",:a-zA-Z0-9\s]/g, '')  // Remove any non-JSON characters
+                        .replace(/,\s*([}\]])/g, '$1');  // Remove trailing commas
+                    
+                    console.log("Second cleaning attempt:", cleanedResponse);
+                    currentCards = JSON.parse(cleanedResponse);
+                }
+
+                // Validate the cards
+                if (!Array.isArray(currentCards)) {
+                    throw new Error("Response is not an array");
+                }
+
+                if (currentCards.length === 0) {
+                    throw new Error("No flashcards were generated");
+                }
+
+                // Validate each card
+                currentCards = currentCards.filter(card => 
+                    card && 
+                    typeof card === 'object' && 
+                    typeof card.question === 'string' && 
+                    typeof card.answer === 'string' &&
+                    card.question.trim() !== '' &&
+                    card.answer.trim() !== ''
+                );
+
+                if (currentCards.length === 0) {
+                    throw new Error("No valid flashcards after filtering");
+                }
+
+                // Reset and show cards
+                currentCardIndex = 0;
+                isFlipped = false;
+                document.getElementById('flashcardSection').classList.remove('hidden');
+                updateCard();
+                
+                // Update progress if progress bar exists
+                if (document.querySelector('.progress-bar-fill')) {
+                    updateProgress();
+                }
+
+                // After successful card generation
+                hideLoadingAnimation();
+                
+                // Small delay before showing cards for smooth transition
+                setTimeout(() => {
+                    document.getElementById('flashcardSection').classList.remove('hidden');
+                    updateCard();
+                    if (document.querySelector('.progress-bar-fill')) {
+                        updateProgress();
+                    }
+                }, 500);
+
+            } catch (error) {
+                hideLoadingAnimation();
+                console.error("Error details:", {
+                    message: error.message,
+                    stack: error.stack,
+                    name: error.name
+                });
+                alert("Failed to generate flashcards. Please try again.");
+            }
+        }
+
+        // Update the showLoadingAnimation function to ensure smooth transitions
+        async function showLoadingAnimation() {
+            const loadingSection = document.getElementById('loadingSection');
+            const loadingMessage = document.getElementById('loadingMessage');
+            let messageIndex = 0;
+
+            // Clear any existing intervals
+            if (loadingSection.dataset.intervalId) {
+                clearInterval(Number(loadingSection.dataset.intervalId));
+            }
+
+            loadingSection.classList.remove('hidden');
+            
+            // Show initial message with fade in
+            loadingMessage.style.opacity = '0';
+            loadingMessage.textContent = loadingMessages[0];
+            setTimeout(() => {
+                loadingMessage.style.opacity = '1';
+            }, 100);
+            
+            // Change message every 2.5 seconds with fade effect
+            return new Promise((resolve) => {
+                const messageInterval = setInterval(() => {
+                    messageIndex = (messageIndex + 1) % loadingMessages.length;
+                    
+                    // Fade out
+                    loadingMessage.style.opacity = '0';
+                    
+                    // Change text and fade in after a short delay
+                    setTimeout(() => {
+                        loadingMessage.textContent = loadingMessages[messageIndex];
+                        loadingMessage.style.opacity = '1';
+                    }, 200);
+                    
+                }, 2500);
+
+                loadingSection.dataset.intervalId = messageInterval;
+                resolve();
+            });
+        }
+
+        // Update the hideLoadingAnimation function to ensure clean cleanup
+        function hideLoadingAnimation() {
+            const loadingSection = document.getElementById('loadingSection');
+            
+            // Clear the interval if it exists
+            if (loadingSection.dataset.intervalId) {
+                clearInterval(Number(loadingSection.dataset.intervalId));
+                loadingSection.dataset.intervalId = '';
+            }
+            
+            // Fade out the loading section
+            loadingSection.style.opacity = '0';
+            setTimeout(() => {
+                loadingSection.classList.add('hidden');
+                loadingSection.style.opacity = '1';
+            }, 300);
+        }
+
+        // Keep the rest of your existing functions unchanged
+        function populateCertificationSelect() {
+            const select = document.getElementById('certificationSelect');
+            Object.keys(flashcardsData).forEach(cert => {
+                const option = document.createElement('option');
+                option.value = cert;
+                option.textContent = cert;
+                select.appendChild(option);
+            });
+        }
+
+        function setupEventListeners() {
+            document.getElementById('certificationSelect').addEventListener('change', handleCertificationChange);
+            document.getElementById('domainSelect').addEventListener('change', handleDomainChange);
+            document.getElementById('startSession').addEventListener('click', startSession);
+            document.getElementById('prevCard').addEventListener('click', showPreviousCard);
+            document.getElementById('nextCard').addEventListener('click', showNextCard);
+            document.getElementById('flashcard').addEventListener('click', flipCard);
+        }
+
+        function handleCertificationChange(e) {
+            const certification = e.target.value;
+            if (certification) {
+                const domains = Object.keys(flashcardsData[certification].Domains);
+                showDomainButtons(domains);
+            } else {
+                hideDomainButtons();
+            }
+        }
+
+        function showDomainButtons(domains) {
+            const container = document.getElementById('domainContainer');
+            const select = document.getElementById('domainSelect');
+            container.classList.remove('hidden');
+            
+            select.innerHTML = '<option value="">Select Domain</option>';
+            domains.forEach(domain => {
+                const option = document.createElement('option');
+                option.value = domain;
+                option.textContent = domain;
+                select.appendChild(option);
+            });
+        }
+
+        function hideDomainButtons() {
+            document.getElementById('domainContainer').classList.add('hidden');
+            document.getElementById('sessionSetup').classList.add('hidden');
+        }
+
+        function handleDomainChange(e) {
+            const selectedDomain = e.target.value;
+            if (selectedDomain) {
+                document.getElementById('sessionSetup').classList.remove('hidden');
+            } else {
+                document.getElementById('sessionSetup').classList.add('hidden');
+            }
+        }
+
+        function updateCard() {
+            const card = currentCards[currentCardIndex];
+            document.getElementById('questionText').textContent = card.question;
+            document.getElementById('answerText').textContent = card.answer;
+            document.getElementById('progress').textContent = 
+                `Card ${currentCardIndex + 1}/${currentCards.length}`;
+            
+            isFlipped = false;
+            document.querySelector('#flashcard .relative').classList.remove('flashcard-flip');
+            
+            // Update progress bar
+            updateProgress();
+        }
+
+        function showNextCard() {
+            if (currentCardIndex < currentCards.length - 1) {
+                currentCardIndex++;
+                updateCard();
+            }
+        }
+
+        function showPreviousCard() {
+            if (currentCardIndex > 0) {
+                currentCardIndex--;
+                updateCard();
+            }
+        }
+
+        function flipCard() {
+            isFlipped = !isFlipped;
+            document.querySelector('#flashcard .relative').classList.toggle('flashcard-flip');
+        }
+
+        // Move the init call to after all functions are defined
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
 </body>
 </html> 

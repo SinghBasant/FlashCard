@@ -25,7 +25,7 @@ function setupEventListeners() {
     document.getElementById('certificationSelect').addEventListener('change', handleCertificationChange);
     
     // Domain selection
-    document.getElementById('domainButtons').addEventListener('click', handleDomainClick);
+    document.getElementById('domainSelect').addEventListener('change', handleDomainChange);
     
     // Session controls
     document.getElementById('startSession').addEventListener('click', startSession);
@@ -50,14 +50,19 @@ function handleCertificationChange(e) {
 // Show domain selection buttons
 function showDomainButtons(domains) {
     const container = document.getElementById('domainContainer');
-    const buttonsContainer = document.getElementById('domainButtons');
+    const select = document.getElementById('domainSelect');
     container.classList.remove('hidden');
     
-    buttonsContainer.innerHTML = domains.map(domain => `
-        <button class="domain-btn px-4 py-2 bg-blue-100 rounded hover:bg-blue-200" data-domain="${domain}">
-            ${domain}
-        </button>
-    `).join('');
+    // Reset select options
+    select.innerHTML = '<option value="">Select Domain</option>';
+    
+    // Add domain options
+    domains.forEach(domain => {
+        const option = document.createElement('option');
+        option.value = domain;
+        option.textContent = domain;
+        select.appendChild(option);
+    });
 }
 
 // Hide domain buttons
@@ -66,22 +71,21 @@ function hideDomainButtons() {
     document.getElementById('sessionSetup').classList.add('hidden');
 }
 
-// Handle domain selection
-function handleDomainClick(e) {
-    if (e.target.classList.contains('domain-btn')) {
-        document.querySelectorAll('.domain-btn').forEach(btn => 
-            btn.classList.remove('bg-blue-500', 'text-white'));
-        e.target.classList.add('bg-blue-500', 'text-white');
+// Handle domain change
+function handleDomainChange(e) {
+    const selectedDomain = e.target.value;
+    if (selectedDomain) {
         document.getElementById('sessionSetup').classList.remove('hidden');
+    } else {
+        document.getElementById('sessionSetup').classList.add('hidden');
     }
 }
 
 // Start flashcard session
 function startSession() {
     const certification = document.getElementById('certificationSelect').value;
-    const domain = document.querySelector('.domain-btn.bg-blue-500').dataset.domain;
+    const domain = document.getElementById('domainSelect').value;
     const cardCount = parseInt(document.getElementById('cardCount').value);
-    const shuffle = document.getElementById('shuffleToggle').checked;
 
     // Gather all cards from the selected domain
     currentCards = [];
@@ -89,10 +93,6 @@ function startSession() {
     Object.values(topics).forEach(cards => {
         currentCards.push(...cards);
     });
-
-    if (shuffle) {
-        currentCards = currentCards.sort(() => Math.random() - 0.5);
-    }
 
     // Limit cards to selected count
     currentCards = currentCards.slice(0, cardCount);
