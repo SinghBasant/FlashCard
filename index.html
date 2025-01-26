@@ -16,14 +16,14 @@
         // Fallback to environment variable if config is not available
         if (typeof config === 'undefined' || !config.GEMINI_API_KEY) {
             const config = {
-                GEMINI_API_KEY: '' || ''
+                GEMINI_API_KEY: 'AIzaSyC4OL6CnbN0UEb3x8KigeOtvwZqaCJewAU' || ''
             };
         }
     </script> -->
     <!-- This is for production -->
     <script>
         // Load GEMINI_API_KEY from environment variables
-        const GEMINI_API_KEY = '' || '';
+        const GEMINI_API_KEY = 'AIzaSyC4OL6CnbN0UEb3x8KigeOtvwZqaCJewAU' || '';
         if (!GEMINI_API_KEY) {
             console.error('GEMINI_API_KEY is not set');
         }
