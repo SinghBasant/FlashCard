@@ -185,7 +185,9 @@
             🛠️ Crafted by Basant, Jan 2025
         </footer>
     </div>
-
+    <script>
+        window.GEMINI_API_KEY = 'GEMINI_API_KEY'; // This will be replaced during build
+    </script>
     <script>
         let geminiModel;
         let currentCards = [];
@@ -208,7 +210,7 @@
                 // Wait for Gemini script to load
                 await window.geminiLoaded;
                 console.log("Basant to initialize Gemini...", GEMINI_API_KEY); // Debug log
-                if (!GEMINI_API_KEY) {
+                if (!window.GEMINI_API_KEY) {
                     throw new Error("GEMINI_API_KEY is not set");
                 }
                 // Now we can safely use GoogleGenerativeAI
