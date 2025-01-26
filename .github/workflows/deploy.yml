@@ -12,13 +12,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       
-      - name: Set environment variables
+      - name: Replace API Key in HTML
         run: |
-          echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" >> $GITHUB_ENV
+          sed -i "s/process.env.GEMINI_API_KEY/'${{ secrets.GEMINI_API_KEY }}'/" index.html
       
-      
-      # Add your deployment steps here
-      # For example, if using GitHub Pages:
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
