@@ -1,0 +1,18 @@
+# Config files with sensitive data
+config.js
+js/config.js
+
+# Environment files
+.env
+.env.local
+
+# IDE/Editor folders
+.vscode/
+.idea/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Other common files to ignore
+node_modules/ 

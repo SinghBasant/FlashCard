@@ -1,0 +1,33 @@
+.perspective-1000 {
+    perspective: 1000px;
+}
+
+.preserve-3d {
+    transform-style: preserve-3d;
+}
+
+.backface-hidden {
+    backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+    transform: rotateY(180deg);
+}
+
+.flashcard-flip {
+    transform: rotateY(180deg);
+}
+
+.group:hover .group-hover\:block {
+    display: block;
+    transition: all 0.3s ease;
+}
+
+.from-yellow-50 {
+    --tw-gradient-from: #fefce8;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgb(254 252 232 / 0));
+}
+
+.to-yellow-100 {
+    --tw-gradient-to: #fef9c3;
+} 
