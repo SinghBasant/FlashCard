@@ -14,7 +14,8 @@ jobs:
       
       - name: Replace API Key in HTML
         run: |
-          sed -i "s/process.env.GEMINI_API_KEY/'${{ secrets.GEMINI_API_KEY }}'/" index.html
+          # Use a more specific pattern to ensure correct replacement
+          sed -i "s/const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';/const GEMINI_API_KEY = '${{ secrets.GEMINI_API_KEY }}';/" index.html
       
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
