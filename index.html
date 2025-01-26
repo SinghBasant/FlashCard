@@ -201,20 +201,20 @@
             "🚀 Almost ready to launch your learning session...",
             "🧠 Training your brain for AWS mastery..."
         ];
-
+        
         // Initialize Gemini
         async function initGemini() {
             try {
                 // Wait for Gemini script to load
                 await window.geminiLoaded;
-                console.log("Attempting to initialize Gemini..."); // Debug log
+                console.log("Basant to initialize Gemini...", GEMINI_API_KEY); // Debug log
                 if (!GEMINI_API_KEY) {
                     throw new Error("GEMINI_API_KEY is not set");
                 }
                 // Now we can safely use GoogleGenerativeAI
                 // This is for localhost
                 //const genAI = new GoogleGenerativeAI(config.GEMINI_API_KEY);
-                const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+                const genAI = new window.GoogleGenerativeAI(GEMINI_API_KEY);
                 geminiModel = genAI.getGenerativeModel({ model: "gemini-pro" });
                 console.log("Gemini initialized successfully");
             } catch (error) {
